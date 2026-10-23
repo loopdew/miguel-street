@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <title>米格尔街 · 沉浸式街景视角 · MIGUEL STREET</title>
+  <meta name="description" content="基于 V.S. 奈保尔《米格尔街》的油画风第一人称街景沉浸互动副本。" />
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/streetview.css" />
+</head>
+<body class="g-dusk">
+  <!-- ================= 沉浸式第一人称全景视口 ================= -->
+  <main id="sv-viewport">
+    <div id="sv-panorama-wrap">
+      <div id="sv-layer-back" class="sv-layer"></div>
+      <div id="sv-layer-front" class="sv-layer"></div>
+      <div id="sv-hotspots"></div>
+    </div>
+    <div id="sv-shimmer"></div>
+
+    <!-- 路面透视推进箭头 -->
+    <div id="sv-nav-arrows">
+      <div id="arrow-fwd" class="sv-arrow">
+        <span class="sv-arrow-icon">▲</span>
+        <span class="sv-arrow-text">向前推进<kbd>W</kbd></span>
+      </div>
+      <div id="arrow-bwd" class="sv-arrow">
+        <span class="sv-arrow-icon">▼</span>
+        <span class="sv-arrow-text">向后退回<kbd>S</kbd></span>
+      </div>
+    </div>
+  </main>
+
+  <!-- 剧情内景画面（全屏油画场景与粒子微交互） -->
+  <div id="scene" class="hidden">
+    <div id="scene-bg"></div>
+    <div id="scene-bg-next"></div>
+    <canvas id="fx"></canvas>
+  </div>
+
+  <!-- ================= 街景提示条 ================= -->
+  <div id="sv-hint-bar">← 按住鼠标拖拽环顾街景 · 点击路面 / W/S 键沿街纵深步进 · A/D 键全景转动 →</div>
+
+  <!-- ================= 街道 HUD ================= -->
+  <div id="hud">
+    <div class="brand">
+      <b>MIGUEL STREET <span style="font-size:12px; color:var(--ochre); font-weight:600; letter-spacing:.15em;">[STREET VIEW · 街景视角]</span></b>
+      <span id="sv-cur-loc">米格尔街 · 南入口 · 01/04</span>
+    </div>
+    <div class="hud-right">
+      <a href="index.html" id="btn-mode-switch" class="de-btn" style="text-decoration:none; display:inline-flex; align-items:center; gap:5px; border-color:rgba(217,164,65,0.6); color:var(--ochre);" title="返回 2.5D 原画漫步视角"><b>2.5D原画漫步</b> 🚶</a>
+      <button id="btn-lang" class="de-btn">Language: <b id="lang-val">EN</b></button><button id="btn-sound" class="de-btn">声音 · 关</button><button id="btn-gramophone" class="de-btn" title="卡里普索留声机 / Calypso Gramophone">📻 <span id="gramophone-track">卡里普索</span></button>
+      <button id="btn-sheet" class="de-btn">内心 <kbd>C</kbd></button>
+      <button id="btn-book" class="de-btn">速写簿 <b id="book-count">0/16</b> <kbd>B</kbd></button>
+    </div>
+  </div>
+  <div id="tooltip" class="hidden"></div>
+
+  <!-- ================= 剧情对话面板（极乐迪斯科式右侧日志） ================= -->
+  <aside id="panel" class="hidden">
+    <div id="portrait-wrap">
+      <div id="portrait"></div>
+      <div id="portrait-name"></div>
+    </div>
+    <div id="log"></div>
+    <div id="options"></div>
+    <div id="panel-foot">
+      <button id="btn-leave" class="de-link">返回街道 <kbd>Esc</kbd></button>
+      <button id="btn-continue" class="de-continue hidden">继续 <kbd>空格</kbd></button>
+    </div>
+  </aside>
+  <div id="fx-tip" class="hidden"></div>
+  <button id="fx-done" class="de-continue floating hidden">继续</button>
+
+  <!-- ================= 掷骰检定 ================= -->
+  <div id="dice" class="hidden">
+    <div class="dice-skill" id="dice-skill"></div>
+    <div class="dice-row"><span class="die" id="die1">?</span><span class="die" id="die2">?</span></div>
+    <div class="dice-sum" id="dice-sum"></div>
+    <div class="dice-result" id="dice-result"></div>
+  </div>
+
+  <!-- ================= 内心技能面板 ================= -->
+  <section id="sheet" class="overlay hidden">
+    <div class="de-sheet">
+      <h2>内心的声音 <small>INNER VOICES</small></h2>
+      <div id="sheet-list"></div>
+      <p class="sheet-foot">这些声音会在你观察街景、倾听和抉择时插话。等级越高，它们说得越多，你也越容易通过检定（2d6 + 等级 ≥ 难度）。</p>
+      <button class="de-link sheet-close">合上 <kbd>Esc</kbd></button>
+    </div>
+  </section>
+
+  <!-- ================= 速写簿 ================= -->
+  <section id="book" class="overlay hidden">
+    <div class="de-sheet wide">
+      <h2>速写簿 <small>THE SKETCHBOOK</small></h2>
+      <div id="book-grid"></div>
+      <button class="de-link sheet-close">合上 <kbd>Esc</kbd></button>
+    </div>
+  </section>
+
+  <!-- ================= 结局遮罩 ================= -->
+  <div id="curtain" class="hidden">
+    <h2>HOW I LEFT MIGUEL STREET</h2>
+    <p id="curtain-text">“我上了飞机，坐下。引擎轰鸣起来，机身颤动。我看着米格尔街在机翼下变小，变成了绿色岛屿上一条微不足道的灰线。”</p>
+    <div class="row">
+      <button id="curtain-restart" class="de-continue">重新漫步米格尔街</button>
+      <a href="index.html" class="de-link">切换至 2.5D 漫步模式</a>
+    </div>
+  </div>
+
+  <!-- ================= 独立开场 / 人物属性创建（支持完全独立运行） ================= -->
+  <section id="intro" class="overlay hidden">
+    <div id="intro-bg"></div>
+    <div class="intro-inner">
+      <h1>MIGUEL<br />STREET</h1>
+      <div class="sub">米 格 尔 街 · 360° 街 景 沉 浸 版</div>
+      <p class="epigraph">“一个陌生人开车经过米格尔街，只会说一句：‘贫民窟！’<br />因为他看不到更多。可我们这些住在这里的人，看到的是一个世界。”</p>
+      <p class="credit">—— 根据 V.S. 奈保尔《米格尔街》（1959）改编 · 第一人称沉浸漫步副本</p>
+      <div class="arche-title">你是在这条街上长大的那个孩子。你是哪一种孩子？</div>
+      <div id="archetypes"></div>
+      <button id="btn-start" class="de-continue big">步入第一人称街景</button>
+    </div>
+  </section>
+
+  <div id="toast" class="hidden"></div>
+
+  <!-- 逻辑脚本 -->
+  <script src="js/data.js"></script>
+  <script src="js/audio.js"></script>
+  <script src="js/fx.js"></script>
+  <script src="js/minigames.js"></script>
+  <script src="js/streetview.js"></script>
+  <!-- ================= 极乐迪斯科 原画油彩笔触滤镜定义 (SVG Paint Displacement Filters) ================= -->
+  <svg style="position:absolute; width:0; height:0; pointer-events:none;" aria-hidden="true">
+    <defs>
+      <filter id="brush-edge-rough" x="-10%" y="-10%" width="120%" height="120%">
+        <feTurbulence type="fractalNoise" baseFrequency="0.04 0.3" numOctaves="3" result="noise" />
+        <feDisplacementMap in="SourceGraphic" in2="noise" scale="6" xChannelSelector="R" yChannelSelector="G" />
+      </filter>
+      <filter id="knife-scrape" x="-15%" y="-15%" width="130%" height="130%">
+        <feTurbulence type="fractalNoise" baseFrequency="0.03 0.12" numOctaves="3" result="knife" />
+        <feDisplacementMap in="SourceGraphic" in2="knife" scale="9" xChannelSelector="R" yChannelSelector="B" />
+      </filter>
+    </defs>
+  </svg>
+</body>
+</html>

@@ -1,0 +1,14 @@
+# Dependencies
+node_modules/
+
+# Logs and temporary files
+*.log
+*.bak*
+data.js.bak*
+
+# OS metadata
+Thumbs.db
+.DS_Store
+
+# Server and dev scratch
+scratch/

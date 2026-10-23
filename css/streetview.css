@@ -1,0 +1,402 @@
+/* ==========================================================
+   米格尔街 · 第一人称街景沉浸视角 (streetview.css)
+   - 360° / 超宽全景拖拽视口与惯性物理
+   - 1940年代加勒比殖民风手绘小地图与动态视场角(FOV)罗盘
+   - 路面透视推进箭头 (Step Forward / Back)
+   - 空间定位 POI 悬浮门牌与极乐迪斯科叙事卡
+   ========================================================== */
+
+#sv-viewport {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  user-select: none;
+  cursor: grab;
+  background: #0d0a08;
+  z-index: 2;
+}
+#sv-viewport.dragging {
+  cursor: grabbing;
+}
+
+/* 全景投影图层容器 */
+#sv-panorama-wrap {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 2800px;
+  height: 100%;
+  will-change: transform;
+}
+.sv-layer {
+  position: absolute;
+  inset: -20px;
+  background-size: cover;
+  background-position: center;
+  will-change: opacity, transform, filter;
+  transform-origin: 50% 60%;
+}
+#sv-layer-back {
+  z-index: 1;
+}
+#sv-layer-front {
+  z-index: 2;
+}
+
+/* 极乐式第一人称景深推进与拉远物理动画 */
+.sv-transition-fwd #sv-layer-back {
+  animation: svBackFwd 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+.sv-transition-fwd #sv-layer-front {
+  animation: svFrontFwd 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+@keyframes svBackFwd {
+  0% { transform: scale(1); opacity: 1; filter: blur(0); }
+  100% { transform: scale(1.28); opacity: 0; filter: blur(4px); }
+}
+@keyframes svFrontFwd {
+  0% { transform: scale(0.88); opacity: 0; filter: blur(2px); }
+  100% { transform: scale(1); opacity: 1; filter: blur(0); }
+}
+
+.sv-transition-bwd #sv-layer-back {
+  animation: svBackBwd 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+.sv-transition-bwd #sv-layer-front {
+  animation: svFrontBwd 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+@keyframes svBackBwd {
+  0% { transform: scale(1); opacity: 1; filter: blur(0); }
+  100% { transform: scale(0.84); opacity: 0; filter: blur(3px); }
+}
+@keyframes svFrontBwd {
+  0% { transform: scale(1.18); opacity: 0; filter: blur(2px); }
+  100% { transform: scale(1); opacity: 1; filter: blur(0); }
+}
+
+/* 热浪微粒与光影层 */
+#sv-shimmer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 4;
+  background: radial-gradient(ellipse at 50% 60%, rgba(255, 200, 120, 0.08) 0%, rgba(0, 0, 0, 0.45) 100%);
+  mix-blend-mode: overlay;
+  transition: opacity 0.4s ease;
+}
+
+/* ================= 空间热点定位 (Panoramic POI Markers) ================= */
+#sv-hotspots {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 5;
+  transition: opacity 0.28s cubic-bezier(0.2, 0.8, 0.25, 1), transform 0.32s cubic-bezier(0.2, 0.8, 0.25, 1);
+  will-change: opacity, transform;
+}
+#sv-hotspots.sv-fading {
+  opacity: 0;
+  transform: translateY(12px) scale(0.97);
+}
+
+/* 街景路面漫步点击光圈 */
+.sv-road-ripple {
+  position: absolute;
+  width: 72px;
+  height: 32px;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: 7;
+  animation: svRipplePop 0.75s cubic-bezier(0.12, 0.85, 0.3, 1) forwards;
+}
+.sv-road-ripple::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 2px solid var(--ochre);
+  box-shadow: 0 0 20px rgba(217, 164, 65, 0.85), inset 0 0 10px rgba(217, 164, 65, 0.45);
+}
+.sv-road-ripple::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #ffffff;
+  box-shadow: 0 0 12px #ffc107;
+}
+@keyframes svRipplePop {
+  0% { transform: translate(-50%, -50%) scale(0.2); opacity: 1; }
+  60% { opacity: 0.9; }
+  100% { transform: translate(-50%, -50%) scale(2.2); opacity: 0; }
+}
+
+.sv-hotspot {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  pointer-events: auto;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: transform 0.22s cubic-bezier(0.2, 0.8, 0.3, 1);
+}
+.sv-hotspot:hover {
+  transform: translate(-50%, -54%) scale(1.08);
+}
+
+/* 街景门牌标牌 (ZA/UM 黄铜门牌与木刻色痕 —— 滤镜仅作用于底层色痕，文字100%锐利) */
+.sv-hotspot .sv-badge {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px 6px 12px;
+  transition: transform 0.2s;
+  z-index: 1;
+}
+.sv-hotspot .sv-badge::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(145deg, rgba(30, 22, 16, 0.97) 0%, rgba(12, 9, 7, 0.99) 100%),
+    url("../assets/ui/panel_slab.jpg") center/cover no-repeat;
+  background-blend-mode: normal, overlay;
+  border: 1.5px solid rgba(217, 164, 65, 0.72);
+  border-left: 4.5px solid var(--rust);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.95), 0 0 16px rgba(217, 164, 65, 0.25);
+  clip-path: polygon(4px 0, calc(100% - 4px) 0, 100% 4px, 100% calc(100% - 4px), calc(100% - 4px) 100%, 4px 100%, 0 calc(100% - 4px), 0 4px);
+  filter: url(#brush-edge-rough);
+  z-index: -1;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.sv-hotspot:hover .sv-badge {
+  transform: translateY(-2px);
+}
+.sv-hotspot:hover .sv-badge::before {
+  border-color: rgba(255, 220, 130, 0.98);
+  border-left-color: var(--rust-hi);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.98), 0 0 26px rgba(217, 164, 65, 0.55);
+}
+.sv-badge .sv-no {
+  font: 700 11px var(--serif);
+  color: var(--ochre);
+  letter-spacing: .12em;
+  padding: 1px 6px;
+  background: rgba(0, 0, 0, 0.7);
+  border: 1px solid rgba(217, 164, 65, 0.48);
+  border-radius: 1px;
+  text-shadow: 0 1px 2px #000;
+}
+.sv-badge .sv-title {
+  font: 700 13.5px var(--serif);
+  letter-spacing: .14em;
+  color: #f7efe0;
+  text-shadow: 0 1px 4px #000, 0 0 8px rgba(0,0,0,0.9);
+  white-space: nowrap;
+}
+.sv-badge .sv-check {
+  color: #8cd4a8;
+  font-size: 11px;
+  font-weight: 700;
+  margin-left: 2px;
+  text-shadow: 0 1px 3px #000;
+}
+.sv-hotspot.done .sv-badge::before {
+  background: linear-gradient(145deg, rgba(20, 28, 22, 0.97) 0%, rgba(10, 15, 12, 0.99) 100%);
+  border-color: rgba(140, 185, 150, 0.6);
+  border-left-color: #6bb38a;
+}
+
+/* 标牌下方的垂直光柱锚点 */
+.sv-hotspot .sv-stem {
+  width: 2px;
+  height: 24px;
+  background: linear-gradient(to bottom, rgba(217, 164, 65, 0.85), rgba(217, 164, 65, 0.05));
+  filter: drop-shadow(0 0 6px rgba(217, 164, 65, 0.6));
+}
+.sv-hotspot .sv-anchor {
+  width: 16px;
+  height: 7px;
+  border-radius: 50%;
+  background: radial-gradient(ellipse at center, rgba(255, 215, 120, 0.9) 0%, rgba(200, 85, 58, 0) 75%);
+  box-shadow: 0 0 14px rgba(217, 164, 65, 0.85);
+}
+
+/* 极乐风悬浮叙事浮签 (ZA/UM 羊皮油彩刮刀色痕卡 —— 笔触在底层，文字100%锐利) */
+.sv-hotspot .sv-tag {
+  position: absolute;
+  bottom: calc(100% + 14px);
+  left: 50%;
+  transform: translateX(-50%);
+  width: max-content;
+  max-width: 330px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .26s cubic-bezier(0.16, 1, 0.3, 1), transform .26s cubic-bezier(0.16, 1, 0.3, 1);
+  padding: 14px 18px 15px 22px;
+  z-index: 20;
+}
+.sv-hotspot .sv-tag::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(135deg, rgba(26, 19, 14, 0.97) 0%, rgba(12, 9, 7, 0.99) 100%),
+    url("../assets/ui/panel_slab.jpg") center/cover no-repeat;
+  background-blend-mode: normal, overlay;
+  border: 1.5px solid rgba(217, 164, 65, 0.65);
+  border-top: 2px solid rgba(255, 228, 155, 0.9);
+  box-shadow: 0 22px 54px rgba(0,0,0,0.98), 0 0 26px rgba(0,0,0,0.85), inset 0 0 26px rgba(0,0,0,0.8);
+  clip-path: polygon(5px 0, calc(100% - 5px) 0, 100% 5px, 100% calc(100% - 5px), calc(100% - 5px) 100%, 5px 100%, 0 calc(100% - 5px), 0 5px);
+  filter: url(#brush-edge-rough);
+  z-index: -1;
+}
+.sv-hotspot .sv-tag::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 4px;
+  bottom: 4px;
+  width: 6px;
+  background: linear-gradient(180deg, var(--rust-hi) 0%, var(--ochre) 50%, var(--rust) 100%);
+  box-shadow: 0 0 12px rgba(200, 85, 58, 0.65);
+  filter: url(#knife-scrape);
+  z-index: -1;
+}
+.sv-hotspot:hover .sv-tag {
+  opacity: 1;
+  transform: translateX(-50%) translateY(-6px);
+}
+
+/* ================= 街景路面透视导航推进箭头 ================= */
+#sv-nav-arrows {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 6;
+  transition: opacity 0.4s;
+}
+#arrow-fwd {
+  left: 50%;
+  bottom: 112px;
+}
+#arrow-bwd {
+  left: 50%;
+  bottom: 54px;
+}
+
+.sv-arrow {
+  position: absolute;
+  transform: translateX(-50%);
+  pointer-events: auto;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 20px;
+  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  z-index: 1;
+}
+.sv-arrow::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(145deg, rgba(26, 19, 14, 0.95) 0%, rgba(12, 9, 7, 0.98) 100%),
+    url("../assets/ui/panel_slab.jpg") center/cover no-repeat;
+  background-blend-mode: normal, overlay;
+  border: 1.5px solid rgba(217, 164, 65, 0.62);
+  border-left: 4px solid var(--ochre);
+  border-right: 4px solid var(--rust);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.92), 0 0 18px rgba(217, 164, 65, 0.22);
+  clip-path: polygon(5px 0, calc(100% - 5px) 0, 100% 5px, 100% calc(100% - 5px), calc(100% - 5px) 100%, 5px 100%, 0 calc(100% - 5px), 0 5px);
+  filter: url(#brush-edge-rough);
+  z-index: -1;
+  transition: border-color 0.22s, box-shadow 0.22s;
+}
+.sv-arrow:hover {
+  transform: translateX(-50%) translateY(-3px) scale(1.06);
+}
+.sv-arrow:hover::before {
+  border-color: rgba(255, 220, 130, 0.98);
+  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.96), 0 0 26px rgba(217, 164, 65, 0.55);
+}
+.sv-arrow .sv-arrow-icon {
+  font-size: 15px;
+  color: var(--ochre);
+  line-height: 1;
+  text-shadow: 0 0 8px rgba(217, 164, 65, 0.8);
+}
+.sv-arrow .sv-arrow-text {
+  font: 700 13px var(--serif);
+  letter-spacing: .16em;
+  color: #f6efe0;
+  white-space: nowrap;
+  text-shadow: 0 1px 4px #000;
+}
+.sv-arrow kbd {
+  font-size: 11px;
+  color: var(--ochre);
+  border: 1px solid rgba(217, 164, 65, 0.4);
+  padding: 1px 5px;
+  border-radius: 2px;
+  margin-left: 6px;
+  background: rgba(0,0,0,0.65);
+}
+
+/* 当前街景位置标识 */
+#sv-cur-loc {
+  display: inline-block;
+  color: var(--ochre);
+  font-family: var(--cond);
+  font-weight: 700;
+  font-size: 13.5px;
+  letter-spacing: .14em;
+  text-shadow: 0 1px 4px rgba(0,0,0,0.9);
+}
+
+/* 街景操作提示与指南 */
+#sv-hint-bar {
+  position: fixed;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 11;
+  font: 700 12px var(--cond);
+  letter-spacing: .22em;
+  color: #efe5d2;
+  padding: 7px 24px;
+  pointer-events: none;
+  text-shadow: 0 1px 4px #000;
+  transition: opacity 0.4s;
+}
+#sv-hint-bar::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, rgba(16, 12, 9, 0.92) 0%, rgba(28, 20, 15, 0.96) 50%, rgba(16, 12, 9, 0.92) 100%);
+  border: 1px solid rgba(217, 164, 65, 0.52);
+  border-left: 4px solid var(--ochre);
+  border-right: 4px solid var(--rust);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.9);
+  clip-path: polygon(6px 0, calc(100% - 6px) 0, 100% 50%, calc(100% - 6px) 100%, 6px 100%, 0 50%);
+  filter: url(#brush-edge-rough);
+  z-index: -1;
+}
+
+body.in-scene #sv-hint-bar,
+body.in-scene #sv-nav-arrows {
+  opacity: 0;
+  pointer-events: none;
+}
+
+@media (max-width: 820px) {
+  #sv-hint-bar { display: none; }
+}
