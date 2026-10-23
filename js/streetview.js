@@ -318,7 +318,9 @@
     }
 
     vp.addEventListener('click', e => {
-      if (runtime.mode !== 'street' || movedDist > 10) return;
+      const isTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+      const clickDistLimit = isTouch ? 16 : 10;
+      if (runtime.mode !== 'street' || movedDist > clickDistLimit) return;
       if (e.target.closest('.sv-hotspot, .sv-arrow, #sv-minimap-card, #hud, #intro, .overlay')) return;
       const yRatio = e.clientY / window.innerHeight;
       if (yRatio > 0.54) {
@@ -1116,6 +1118,17 @@
     $('#lang-val').textContent = isEn ? 'EN' : '中文';
     const node = SV_NODES[currentNodeIndex];
     if ($('#sv-node-title')) $('#sv-node-title').textContent = isEn ? node.nameEn : node.name;
+    const isTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+    const hintEl = $('#sv-hint-bar');
+    if (hintEl) {
+      hintEl.textContent = isTouch ?
+        (isEn ? '← Drag to Look Around · Tap Road or Arrows to Move Forward →' : '← 单指滑动环视街景 · 点击路面或箭头纵深推进 →') :
+        (isEn ? '← Drag Mouse to Look Around · Click Road / W-S to Step · A-D to Rotate →' : '← 按住鼠标拖拽环顾街景 · 点击路面 / W/S 键沿街纵深步进 · A/D 键全景转动 →');
+    }
+    const fwdTxt = $('#arrow-fwd .sv-arrow-text');
+    if (fwdTxt) fwdTxt.innerHTML = `${isEn ? 'Step Forward' : '向前推进'}<kbd>W</kbd>`;
+    const bwdTxt = $('#arrow-bwd .sv-arrow-text');
+    if (bwdTxt) bwdTxt.innerHTML = `${isEn ? 'Step Back' : '向后退回'}<kbd>S</kbd>`;
     renderHotspots(node);
     updateBookCounter();
     if ($('#archetypes') && !$('#intro').classList.contains('hidden')) {

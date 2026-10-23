@@ -125,6 +125,8 @@
     let isPointerDown = false;
     let startX = 0;
     let startCam = 0;
+    const isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+    const dragThreshold = isTouchDevice ? 12 : 6;
 
     street.addEventListener('pointerdown', e => {
       if (runtime.mode !== 'street') return;
@@ -138,7 +140,7 @@
       if (!isPointerDown) return;
       const dx = e.clientX - startX;
       movedDistance += Math.abs(dx);
-      if (movedDistance > 6) {
+      if (movedDistance > dragThreshold) {
         street.classList.add('dragging');
         setCam(startCam - dx);
       }
@@ -150,7 +152,7 @@
       street.classList.remove('dragging');
 
       // 如果位移很小，判定为点击路面：主角走向该位置
-      if (movedDistance <= 6) {
+      if (movedDistance <= dragThreshold) {
         const rect = inner.getBoundingClientRect();
         const clickPx = e.clientX - rect.left;
         const clickPy = e.clientY - rect.top;
@@ -979,9 +981,10 @@
 
     $('#btn-sheet').innerHTML = `${isEn ? 'Mind' : '内心'} <kbd>C</kbd>`;
     $('#btn-book').innerHTML = `${isEn ? 'Sketchbook' : '速写簿'} <b id="book-count">${state.collected.length}/${CHAPTERS.length}</b> <kbd>B</kbd>`;
-    $('#pan-hint').textContent = isEn ?
-      '← Click Road to Walk / A-D to Move / Drag or Scroll Street →' :
-      '← 点击路面漫步 / A-D键行走 / 滚轮探索米格尔街 →';
+    const isTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+    $('#pan-hint').textContent = isTouch ?
+      (isEn ? '← Swipe to Explore · Tap Road to Walk · Tap Sign to Enter →' : '← 单指滑动漫游街道 · 点击路面漫步 · 点击门牌开启故事 →') :
+      (isEn ? '← Click Road to Walk / A-D to Move / Drag or Scroll Street →' : '← 点击路面漫步 / A-D键行走 / 滚轮探索米格尔街 →');
 
     const trk = SoundScape.getTrackInfo();
     const gSpan = $('#gramophone-track');
