@@ -13,15 +13,24 @@ const SoundScape = (() => {
   const prox = { popo: 0, words: 0 };
   let bees = null, hammerAt = 0;
   let currentTrackIdx = 0;
+  let audioEl = null;
 
   const NOTE = n => 440 * Math.pow(2, (n - 69) / 12);
 
-  // 4 大真实加勒比经典留声机乐曲
+  // 经典加勒比留声机曲库（包含 Gemini 独家生成原声 + WebAudio 实时芯片乐）
   const TRACKS = [
+    {
+      id: 'fancy_umbrella',
+      name: "The Fancy Man's Umbrella",
+      nameZh: "讲究男人的雨伞 (Gemini 原声)",
+      artist: 'Port of Spain Street Calypso · 1940s',
+      src: 'assets/audio/calypso.mp3',
+      type: 'recorded'
+    },
     {
       id: 'rum',
       name: 'Rum and Coca-Cola',
-      nameZh: '朗姆与可口可乐',
+      nameZh: '朗姆与可口可乐 (电声)',
       artist: 'Lord Invader · 1943',
       tempo: 114,
       chords: [[60, 64, 67, 72], [65, 69, 72, 77], [67, 71, 74, 77], [60, 64, 67, 72]],
@@ -36,7 +45,7 @@ const SoundScape = (() => {
     {
       id: 'love',
       name: 'Love, Love, Love Alone',
-      nameZh: '只是为了，爱，爱，爱',
+      nameZh: '只是为了，爱，爱，爱 (电声)',
       artist: 'Lord Caresser · 1937',
       tempo: 98,
       chords: [[57, 60, 64, 69], [53, 57, 60, 65], [52, 55, 59, 64], [57, 60, 64, 69]],
@@ -51,7 +60,7 @@ const SoundScape = (() => {
     {
       id: 'carnival',
       name: 'Carnival Road March',
-      nameZh: '狂欢节街头进行曲',
+      nameZh: '狂欢节街头进行曲 (电声)',
       artist: 'Trinidad All-Stars Steel Orchestra',
       tempo: 122,
       chords: [[60, 64, 67, 72], [60, 64, 67, 72], [65, 69, 72, 77], [67, 71, 74, 77]],
@@ -66,7 +75,7 @@ const SoundScape = (() => {
     {
       id: 'savannah',
       name: 'Savannah Midnight Jazz',
-      nameZh: '萨瓦纳午夜星空蓝调',
+      nameZh: '萨瓦纳午夜星空蓝调 (电声)',
       artist: 'Port of Spain Nocturne',
       tempo: 84,
       chords: [[53, 57, 60, 64], [55, 59, 62, 65], [52, 55, 59, 62], [57, 60, 64, 67]],
@@ -158,16 +167,58 @@ const SoundScape = (() => {
     if (bees) bees.gain.setTargetAtTime(0.03 * prox.words, ctx.currentTime, 0.3);
   }
 
+  function syncTrackPlay() {
+    const trk = TRACKS[currentTrackIdx];
+    if (trk.src) {
+      // 停止 WebAudio 的合成时钟
+      if (timer) { clearInterval(timer); timer = null; }
+      if (!audioEl) {
+        audioEl = new Audio();
+        audioEl.loop = true;
+        audioEl.preload = 'auto';
+      }
+      const targetSrc = trk.src;
+      if (!audioEl.src.endsWith(targetSrc)) {
+        audioEl.src = targetSrc;
+      }
+      audioEl.volume = mode === 'sad' ? 0.25 : (mode === 'night' ? 0.45 : 0.75);
+      if (on) {
+        audioEl.play().catch(e => console.log('Audio autoplay note:', e));
+      } else {
+        audioEl.pause();
+      }
+    } else {
+      // 真实录音暂停，转为 WebAudio 合成循环
+      if (audioEl) audioEl.pause();
+      if (on && !timer) {
+        nextTime = ctx.currentTime + 0.1;
+        timer = setInterval(schedule, 40);
+      }
+    }
+  }
+
   function setOn(v) {
     init();
     on = v;
     if (ctx.state === 'suspended') ctx.resume();
     master.gain.setTargetAtTime(on ? 0.75 : 0, ctx.currentTime, 0.4);
-    if (on && !timer) { nextTime = ctx.currentTime + 0.1; timer = setInterval(schedule, 40); }
+    syncTrackPlay();
   }
   function setMode(m) {
     if (!m || m === mode) return;
     mode = m;
+    const trk = TRACKS[currentTrackIdx];
+    if (audioEl && trk && trk.src) {
+      if (m === 'off') {
+        audioEl.volume = 0;
+      } else if (m === 'sad') {
+        audioEl.volume = 0.25;
+      } else if (m === 'night') {
+        audioEl.volume = 0.45;
+      } else {
+        audioEl.volume = 0.75;
+      }
+    }
     if (!ctx) return;
     music.gain.setTargetAtTime(m === 'off' ? 0 : 0.32, ctx.currentTime, 0.6);
   }
@@ -179,6 +230,7 @@ const SoundScape = (() => {
     if (!on) setOn(true);
     currentTrackIdx = (currentTrackIdx + 1) % TRACKS.length;
     step = 0; // 从头起拍
+    syncTrackPlay();
     sfx('flip');
     return TRACKS[currentTrackIdx];
   }
@@ -188,6 +240,7 @@ const SoundScape = (() => {
       currentTrackIdx = idx;
       step = 0;
       if (!on) setOn(true);
+      syncTrackPlay();
       return TRACKS[currentTrackIdx];
     }
   }
