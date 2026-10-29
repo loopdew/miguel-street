@@ -1546,3 +1546,417 @@ button, a, .hot, .sv-arrow, .sv-hotspot, .arche, .entry, .de-btn, .de-continue, 
 
 html.noanim *, html.noanim *::before, html.noanim *::after,
 body.noanim *, body.noanim *::before, body.noanim *::after { animation: none !important; transition: none !important; }
+
+/* ==========================================================
+   米格尔街 · 极乐迪斯科 RPG 核心机制视觉系统 (HUD / Cabinet / Morale / Dice)
+   ========================================================== */
+
+/* 1. HUD 中央生命与精神指标 (Vitals) */
+.hud-center {
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+#hud-vitals {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: linear-gradient(135deg, rgba(22, 16, 12, 0.94) 0%, rgba(12, 9, 7, 0.98) 100%), var(--grain-leather);
+  border: 1.5px solid rgba(217, 164, 65, 0.45);
+  border-top: 2px solid var(--ochre);
+  padding: 4px 12px;
+  border-radius: 2px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.85);
+}
+.hud-vital {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font: 700 12px var(--cond);
+  letter-spacing: .12em;
+  color: var(--bone);
+}
+.vital-label {
+  color: var(--ochre);
+  font-size: 11px;
+}
+.vital-pips {
+  display: flex;
+  gap: 3px;
+}
+.vital-pips .pip {
+  width: 9px;
+  height: 9px;
+  background: rgba(40, 26, 20, 0.9);
+  border: 1px solid rgba(200, 85, 58, 0.5);
+  border-radius: 1px;
+  transition: background .2s, box-shadow .2s;
+}
+.vital-pips .pip.on {
+  background: #ff5232;
+  box-shadow: 0 0 8px rgba(255, 82, 50, 0.85);
+  border-color: #ff8b73;
+}
+#hud-insight b {
+  color: #ffdb78;
+  font-size: 14px;
+  text-shadow: 0 0 8px rgba(255, 219, 120, 0.7);
+}
+
+/* 2. 浮动伤害与治愈数字 (Floating Damage & Healing) */
+.de-damage-floater {
+  position: fixed;
+  top: 42%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  z-index: 100;
+  pointer-events: none;
+  animation: floatUpDamage 2.5s cubic-bezier(0.12, 0.88, 0.3, 1) forwards;
+}
+.de-damage-floater b {
+  font: 900 28px var(--latin);
+  color: #ff3b30;
+  letter-spacing: .15em;
+  text-shadow: 0 0 16px rgba(255, 59, 48, 0.9), 0 2px 6px #000;
+}
+.de-damage-floater small {
+  font: 700 13px var(--serif);
+  color: #ffd2cc;
+  background: rgba(18, 10, 8, 0.92);
+  padding: 3px 10px;
+  border: 1px solid rgba(255, 59, 48, 0.6);
+  border-radius: 2px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.9);
+}
+@keyframes floatUpDamage {
+  0% { opacity: 0; transform: translate(-50%, -20%) scale(0.85); }
+  15% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
+  35% { transform: translate(-50%, -50%) scale(1); }
+  100% { opacity: 0; transform: translate(-50%, -120%) scale(0.95); }
+}
+
+.de-heal-floater {
+  position: fixed;
+  top: 42%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  z-index: 100;
+  pointer-events: none;
+  animation: floatUpDamage 2.5s cubic-bezier(0.12, 0.88, 0.3, 1) forwards;
+}
+.de-heal-floater b {
+  font: 900 26px var(--latin);
+  color: #4cd964;
+  letter-spacing: .15em;
+  text-shadow: 0 0 16px rgba(76, 217, 100, 0.9), 0 2px 6px #000;
+}
+.de-heal-floater small {
+  font: 700 13px var(--serif);
+  color: #d4ffd8;
+  background: rgba(10, 20, 12, 0.92);
+  padding: 3px 10px;
+  border: 1px solid rgba(76, 217, 100, 0.6);
+  border-radius: 2px;
+}
+
+/* 3. 心理绝望与崩溃危机倒计时 (#morale-crisis) */
+#morale-crisis {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  background: radial-gradient(ellipse at center, rgba(35, 10, 8, 0.92) 0%, rgba(8, 5, 4, 0.98) 80%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: crisisPulse 1.2s infinite alternate;
+}
+@keyframes crisisPulse {
+  0% { box-shadow: inset 0 0 100px rgba(255, 50, 40, 0.5); }
+  100% { box-shadow: inset 0 0 160px rgba(255, 50, 40, 0.85); }
+}
+.crisis-card {
+  max-width: 540px;
+  padding: 36px 40px;
+  background: linear-gradient(150deg, rgba(32, 14, 10, 0.98) 0%, rgba(14, 8, 6, 0.99) 100%), var(--grain-leather);
+  border: 2px solid #ff4d3b;
+  border-top: 5px solid #ff2b14;
+  text-align: center;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.98), 0 0 40px rgba(255, 43, 20, 0.4);
+}
+.crisis-pulse {
+  font-size: 42px;
+  animation: heartThump 0.75s ease-in-out infinite;
+}
+@keyframes heartThump {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.25); }
+}
+.crisis-card h3 {
+  font: 700 20px var(--latin);
+  letter-spacing: .25em;
+  color: #ff6854;
+  margin: 12px 0 16px;
+}
+.crisis-card p {
+  font-size: 15px;
+  line-height: 1.8;
+  color: #efe7d8;
+  margin-bottom: 20px;
+}
+.crisis-countdown b {
+  font: 900 48px var(--latin);
+  color: #ff3824;
+  text-shadow: 0 0 20px rgba(255, 56, 36, 0.9);
+}
+.crisis-tip {
+  font-size: 12px !important;
+  color: var(--ochre) !important;
+  margin-top: 14px;
+}
+
+/* 4. 思维内阁模态窗口 (The Thought Cabinet Modal) */
+.cabinet-sheet {
+  max-height: 88vh;
+  display: flex;
+  flex-direction: column;
+}
+.cabinet-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  border-bottom: 1.5px solid rgba(217, 164, 65, 0.35);
+  padding-bottom: 12px;
+  margin-bottom: 18px;
+}
+.cabinet-head h2 {
+  margin: 0;
+  border: 0;
+  padding: 0;
+}
+.cabinet-status {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font: 700 12.5px var(--cond);
+  letter-spacing: .12em;
+  color: var(--bone);
+}
+.cabinet-slots {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+.cabinet-slot-card {
+  position: relative;
+  background: linear-gradient(145deg, rgba(28, 20, 16, 0.96) 0%, rgba(14, 10, 8, 0.98) 100%), var(--grain-leather);
+  border: 1.5px solid rgba(217, 164, 65, 0.4);
+  border-left: 4.5px solid var(--ochre);
+  padding: 16px 18px;
+  min-height: 170px;
+  display: flex;
+  flex-direction: column;
+  transition: transform .2s, border-color .2s;
+}
+.cabinet-slot-card.internalized {
+  border-left-color: #6bb38a;
+  background: linear-gradient(145deg, rgba(20, 28, 22, 0.96) 0%, rgba(10, 15, 12, 0.98) 100%);
+}
+.cabinet-slot-card.researching {
+  border-left-color: var(--rust-hi);
+}
+.cabinet-slot-card.empty {
+  border-left-color: #55483b;
+  border-style: dashed;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  color: var(--dim);
+}
+.slot-badge {
+  font: 700 10.5px var(--cond);
+  letter-spacing: .2em;
+  color: var(--ochre);
+  margin-bottom: 8px;
+}
+.slot-badge.pulse {
+  color: var(--rust-hi);
+  animation: badgeBlink 1.4s ease-in-out infinite;
+}
+@keyframes badgeBlink { 0%, 100% { opacity: 1; } 50% { opacity: 0.55; } }
+.cabinet-slot-card .th-icon {
+  font-size: 26px;
+  margin-bottom: 6px;
+}
+.cabinet-slot-card h4 {
+  font: 700 16px var(--serif);
+  letter-spacing: .12em;
+  color: #fff6e8;
+  margin: 0 0 8px;
+}
+.cabinet-slot-card p {
+  font-size: 13px;
+  line-height: 1.6;
+  color: #dcd2bf;
+  margin: 0;
+}
+.th-prog-bar {
+  width: 100%;
+  height: 6px;
+  background: rgba(0,0,0,0.6);
+  border-radius: 2px;
+  overflow: hidden;
+  margin: 8px 0;
+}
+.th-prog-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--rust) 0%, var(--ochre) 100%);
+  transition: width .3s ease;
+}
+
+.cabinet-library {
+  border-top: 1.5px solid rgba(217, 164, 65, 0.25);
+  padding-top: 16px;
+}
+.cabinet-library h3 {
+  font: 700 16px var(--serif);
+  letter-spacing: .2em;
+  color: var(--bone);
+  margin: 0 0 14px;
+}
+.thought-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 14px;
+}
+.thought-library-card {
+  background: rgba(22, 16, 12, 0.85);
+  border: 1px solid rgba(217, 164, 65, 0.3);
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+}
+.thought-library-card.done {
+  border-color: rgba(107, 179, 138, 0.45);
+  opacity: 0.75;
+}
+.th-lib-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+.th-lib-source {
+  font: 11px var(--cond);
+  letter-spacing: .1em;
+  color: var(--ochre);
+}
+.thought-library-card h4 {
+  font: 700 15px var(--serif);
+  margin: 0 0 6px;
+  color: #fff5e5;
+}
+.th-lib-desc {
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: #c9bea9;
+  margin: 0 0 10px;
+  flex: 1;
+}
+.th-lib-foot {
+  display: flex;
+  justify-content: flex-end;
+}
+.tag-done {
+  font: 700 11px var(--cond);
+  color: #6bb38a;
+  letter-spacing: .15em;
+}
+.tag-active {
+  font: 700 11px var(--cond);
+  color: var(--rust-hi);
+  letter-spacing: .15em;
+}
+
+/* 5. 掷骰检定情境修正值清单 (.dice-modifiers) */
+.dice-modifiers-box {
+  background: rgba(16, 11, 8, 0.94);
+  border: 1px solid rgba(217, 164, 65, 0.3);
+  padding: 8px 12px;
+  margin: 12px 0;
+  max-width: 320px;
+  text-align: left;
+}
+.dice-modifiers-title {
+  font: 700 11px var(--cond);
+  letter-spacing: .18em;
+  color: var(--ochre);
+  margin-bottom: 6px;
+}
+.dice-mod-item {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  line-height: 1.5;
+  color: #dcd0bc;
+}
+.dice-mod-item.bonus span:last-child {
+  color: #55db78;
+  font-weight: 700;
+}
+.dice-mod-item.malus span:last-child {
+  color: #ff5240;
+  font-weight: 700;
+}
+
+/* 6. 白检定与红检定选项外观 (.white-check, .red-check, .locked-check) */
+#options button.white-check::before {
+  border-left-color: #efe8dc;
+}
+#options button.red-check::before {
+  border-left-color: #d63820;
+}
+#options button.red-check:hover::before {
+  background: linear-gradient(90deg, rgba(200, 45, 25, 0.95) 0%, rgba(140, 30, 15, 0.8) 70%, transparent 100%);
+  border-left-color: #ff4d33;
+}
+#options button.locked-check {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+#options button.locked-check:hover {
+  transform: none;
+  color: #a89f90;
+}
+
+/* 7. 内心特质升级按钮 (.btn-voice-up) */
+.skill-upgrade-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.btn-voice-up {
+  background: linear-gradient(135deg, rgba(217, 164, 65, 0.3) 0%, rgba(200, 85, 58, 0.3) 100%);
+  border: 1px solid var(--ochre);
+  color: #fff6e8;
+  font: 700 11px var(--cond);
+  letter-spacing: .15em;
+  padding: 3px 8px;
+  border-radius: 2px;
+  cursor: pointer;
+  transition: background .2s, transform .15s;
+}
+.btn-voice-up:hover {
+  background: var(--ochre);
+  color: #0b0908;
+  transform: scale(1.06);
+}

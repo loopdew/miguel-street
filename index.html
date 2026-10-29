@@ -40,9 +40,24 @@
   <!-- ================= 街道 HUD ================= -->
   <div id="hud">
     <div class="brand"><b>MIGUEL STREET</b><span>米格尔街 · 西班牙港 · 1940年代</span></div>
+    <div class="hud-center">
+      <div id="hud-vitals">
+        <div id="hud-morale" class="hud-vital" title="心力/士气：当你承受成人世界的残酷、羞辱或重大失败时会受损">
+          <span class="vital-label">士气</span>
+          <div id="morale-pips" class="vital-pips">
+            <span class="pip on"></span><span class="pip on"></span><span class="pip on"></span>
+          </div>
+        </div>
+        <div id="hud-insight" class="hud-vital" title="顿悟点数：通过探索、解决事件、通过检定获得，用于提升内心声音等级与开启思维槽">
+          <span class="vital-label">顿悟</span>
+          <b id="insight-count">1</b>
+        </div>
+      </div>
+    </div>
     <div class="hud-right">
       <a href="streetview.html" id="btn-mode-switch" class="de-btn" style="text-decoration:none; display:inline-flex; align-items:center; gap:6px; border-color:rgba(255,220,130,0.85); color:var(--ochre);" title="切换至 360° 第一人称街景沉浸独立副本"><b>360°街景独立版</b> 🧭</a>
       <button id="btn-lang" class="de-btn">Language: <b id="lang-val">EN</b></button><button id="btn-sound" class="de-btn">声音 · 关</button><button id="btn-gramophone" class="de-btn" title="卡里普索留声机 / Calypso Gramophone">📻 <span id="gramophone-track">卡里普索</span></button>
+      <button id="btn-cabinet" class="de-btn" title="思维内阁 / Thought Cabinet (T)">🧠 思维阁 <b id="cabinet-badge">0/3</b> <kbd>T</kbd></button>
       <button id="btn-sheet" class="de-btn">内心 <kbd>C</kbd></button>
       <button id="btn-book" class="de-btn">速写簿 <b id="book-count">0/16</b> <kbd>B</kbd></button>
     </div>
@@ -69,6 +84,7 @@
   <!-- ================= 掷骰 ================= -->
   <div id="dice" class="hidden">
     <div class="dice-skill" id="dice-skill"></div>
+    <div id="dice-ledger"></div>
     <div class="dice-row"><span class="die" id="die1">?</span><span class="die" id="die2">?</span></div>
     <div class="dice-sum" id="dice-sum"></div>
     <div class="dice-result" id="dice-result"></div>
@@ -108,11 +124,44 @@
     </div>
   </section>
 
+  <!-- ================= 思维内阁 (The Thought Cabinet) ================= -->
+  <section id="cabinet" class="overlay hidden">
+    <div class="de-sheet wide cabinet-sheet">
+      <div class="cabinet-head">
+        <h2>思维内阁 <small>THE THOUGHT CABINET</small></h2>
+        <div class="cabinet-status">
+          <span>内在化槽位: <b id="cab-slot-count">0/3</b></span>
+          <button id="btn-unlock-slot" class="de-link" style="color:var(--ochre);">+ 消耗 2 点顿悟扩充槽位</button>
+        </div>
+      </div>
+      <div class="cabinet-main">
+        <div class="cabinet-slots" id="cabinet-slots"></div>
+      </div>
+      <div class="cabinet-library">
+        <h3>已萌发的街头思潮 <small>DISCOVERED THOUGHTS</small></h3>
+        <div class="thought-grid" id="thought-grid"></div>
+      </div>
+      <button class="de-link sheet-close" id="cabinet-close">合上 <kbd>Esc</kbd></button>
+    </div>
+  </section>
+
+  <!-- ================= 绝望与心理崩溃危机倒计时 ================= -->
+  <div id="morale-crisis" class="hidden">
+    <div class="crisis-card">
+      <div class="crisis-pulse">💔</div>
+      <h3>心理崩溃危机 · CRITICAL BREAKDOWN</h3>
+      <p>你的心力与尊严被彻底击垮了。成人世界的冷酷嘲笑让你窒息，你只想尖叫着跳上运糖船永远逃离特立尼达……</p>
+      <div class="crisis-countdown"><b id="crisis-timer">15s</b></div>
+      <p class="crisis-tip">快开启留声机听一段卡里普索旋律，或在脑海中找回尊严！</p>
+    </div>
+  </div>
+
   <div id="toast" class="hidden"></div>
   <div id="curtain" class="hidden"></div>
 
   <script src="js/data.js"></script>
   <script src="js/audio.js"></script>
+  <script src="js/rpg.js"></script>
   <script src="js/fx.js"></script>
   <script src="js/main.js"></script>
   <!-- ================= 极乐迪斯科 原画油彩笔触滤镜定义 (SVG Paint Displacement Filters) ================= -->

@@ -199,8 +199,13 @@ const CHAPTERS = [
             "label": "[街头智慧] 坐在小板凳上，看他桌面上的七行单人纸牌阵局",
             "labelEn": "[Street Smarts] Sit on the stool and inspect his seven-line patience layout",
             "check": {
+              "id": "bogart_cards",
+              "type": "white",
               "v": "street",
-              "dc": 6
+              "dc": 6,
+              "modifiers": [
+                { "text": "看透单人纸牌的死局", "textEn": "Patience layout insight", "statGte": { "v": "street", "val": 3 }, "val": 1 }
+              ]
             },
             "pass": [
               {
@@ -275,11 +280,18 @@ const CHAPTERS = [
             "label": "[胆量检定] 走上前直视鲍嘉压得低低的帽檐，问他是不是真成了杀手",
             "labelEn": "[Nerve] Walk up and look beneath Bogart's tilted fedora, asking if he has killed a man",
             "check": {
+              "id": "bogart_confront_red",
+              "type": "red",
               "v": "nerve",
-              "dc": 6
+              "dc": 7,
+              "modifiers": [
+                { "text": "熟悉好莱坞黑色电影", "textEn": "Familiar with Hollywood Noir", "statGte": { "v": "imagine", "val": 3 }, "val": 1 },
+                { "text": "街头浪儿的狡黠胆量", "textEn": "Pavement child audacity", "statGte": { "v": "street", "val": 3 }, "val": 1 }
+              ]
             },
             "pass": [
               {
+                "thought": "bogart_pose",
                 "s": "bogart",
                 "x": "鲍嘉冷冷吐出一口青烟，眼神像刀子一样扫过你的脸：“小子，在男人的世界里，知道太多的人活不长。”",
                 "en": "Bogart blew a stream of smoke, eyes cutting like glass: 'Listen, boy. In a man's game, a guy who knows too much don't live long.'"
@@ -287,12 +299,13 @@ const CHAPTERS = [
               {
                 "v": "street",
                 "lvl": 2,
-                "x": "他学得太像了。不仅口音美国化了，连步态和眼神都在刻意模仿电影里的亡命之徒。",
-                "en": "The mimicry was uncanny. Not only the American accent, but the slouch, the squint, the menace—all lifted straight from Hollywood celluloid."
+                "x": "他学得太像了。不仅口音美国化了，连步态和眼神都在刻意模仿电影里的亡命之徒。一幅名为《假装鲍嘉》的硬汉姿态在你脑海中萌发了。",
+                "en": "The mimicry was uncanny. Not only the American accent, but the slouch, the squint, the menace—all lifted straight from Hollywood celluloid. The posture of Bogart has taken root in your mind."
               }
             ],
             "fail": [
               {
+                "damage": { "amount": 1, "reason": "鲍嘉残酷好莱坞式的冷蔑扫视，自尊受挫" },
                 "s": "bogart",
                 "x": "鲍嘉轻蔑地哼了一声，转过脸去：“小崽子，滚一边喝奶去。”",
                 "en": "Bogart scoffed, turning away: 'Run along, kid. Go drink milk with the women.'"
@@ -449,14 +462,20 @@ const CHAPTERS = [
             "label": "[想象检定] 替波普琢磨一块气派的招牌",
             "labelEn": "[Imagination] Design a grand signboard for Popo's shop",
             "check": {
+              "id": "popo_signboard",
+              "type": "white",
               "v": "imagine",
-              "dc": 6
+              "dc": 6,
+              "modifiers": [
+                { "text": "凝视刨花堆里的静谧造物", "textEn": "Purity of useless craft in shavings", "statGte": { "v": "imagine", "val": 3 }, "val": 1 }
+              ]
             },
             "pass": [
               {
+                "thought": "unnamed_object",
                 "s": "narr",
-                "x": "波普想称自己为“建筑师”，但我劝住了他，因为他的拼写老没个准儿。最后由我执笔写成了：【建造师及承包人 · 木匠 · 家具师】，并在右下方签上了我自己的名字。",
-                "en": "Popo wanted to call himself an architect, but his spelling was shaky. I wrote it for him: 'BUILDER AND CONTRACTOR / Carpenter / And / Cabinet Maker', signing my name in the corner."
+                "x": "波普想称自己为“建筑师”，但我劝住了他，因为他的拼写老没个准儿。最后由我执笔写成了：【建造师及承包人 · 木匠 · 家具师】，并在右下方签上了我自己的名字。《未完成的物件》思潮在你脑海中萌发。",
+                "en": "Popo wanted to call himself an architect, but his spelling was shaky. I wrote it for him: 'BUILDER AND CONTRACTOR / Carpenter / And / Cabinet Maker', signing my name in the corner. The thought 'The Thing Without a Name' takes root."
               },
               {
                 "s": "popo",
@@ -701,11 +720,16 @@ const CHAPTERS = [
             ]
           },
           {
-            "label": "[胆量检定] 昂首挺胸走过乔治的台阶，直视他的眼睛",
-            "labelEn": "[Nerve] Walk tall past George's verandah, staring straight into his eyes",
+            "label": "[胆量红检定] 昂首挺胸走过乔治的台阶，直视他的眼睛",
+            "labelEn": "[Red Check · Nerve] Walk tall past George's verandah, staring straight into his eyes",
             "check": {
+              "id": "george_hounds_red",
+              "type": "red",
               "v": "nerve",
-              "dc": 6
+              "dc": 7,
+              "modifiers": [
+                { "text": "直面暴力的狂悖", "textEn": "Confronting senseless brutality", "statGte": { "v": "nerve", "val": 3 }, "val": 1 }
+              ]
             },
             "pass": [
               {
@@ -716,9 +740,10 @@ const CHAPTERS = [
             ],
             "fail": [
               {
+                "damage": { "amount": 1, "reason": "乔治纵犬扑咬的恶毒恐吓" },
                 "s": "narr",
-                "x": "乔治猛地大喝：“扑过去！”恶犬狂暴腾起，恶臭的犬吻几乎蹭到你的膝盖，你吓得差点摔倒在臭水沟里。",
-                "en": "George barked: 'Sank!' The hound leaped, snapping inches from your shins, and you nearly tumbled headlong into the sewage."
+                "x": "乔治猛地大喝：“扑过去！”恶犬狂暴腾起，恶臭的犬吻几乎蹭到你的膝盖，你吓得差点摔倒在臭水沟里，心跳剧烈得几乎呕吐。",
+                "en": "George barked: 'Sank!' The hound leaped, snapping inches from your shins, and you nearly tumbled headlong into the sewage, heart pounding in nauseating terror."
               }
             ]
           }
@@ -1288,11 +1313,12 @@ const CHAPTERS = [
         "en": "A roar rose from where Hat and Edward stood. Instantly, real fist-sized rocks pelted the cross! The Messiah vanished. In frantic Trinidad slang Man-man shrieked: 'Stop this damn foolishness! Look, stop pelting, you bastards! The joke finish! Police! Untie me quick! Save me!'"
       },
       {
+        "thought": "street_messiah",
         "v": "street",
         "lvl": 2,
         "s": "narr",
-        "x": "警察挥舞警棍冲上前，把浑身青肿的曼曼从十字架上解下，直接押上了救护车。当局把他关进了疯人院，永远地关了起来。米格尔街上再也没有人见过他。哈特在回城的路上抽着烟：“在特立尼达，你可以当任何角色，直到你真把玩笑当成了真理。”",
-        "en": "The police charged in, untied the bruised prophet, and bundled him into the ambulance van. The authorities locked him up in the lunatic asylum, locked him up for good. Nobody in Miguel Street ever saw Man-man again. Hat lit a cigarette on the road back: 'In Trinidad, you can play at anything, until you make the mistake of believing your own joke.'"
+        "x": "警察挥舞警棍冲上前，把浑身青肿的曼曼从十字架上解下，直接押上了救护车。当局把他关进了疯人院，永远地关了起来。米格尔街上再也没有人见过他。哈特在回城的路上抽着烟：“在特立尼达，你可以当任何角色，直到你真把玩笑当成了真理。”思潮《受洗的疯子救世主》在你脑海中萌发。",
+        "en": "The police charged in, untied the bruised prophet, and bundled him into the ambulance van. The authorities locked him up in the lunatic asylum, locked him up for good. Nobody in Miguel Street ever saw Man-man again. Hat lit a cigarette on the road back: 'In Trinidad, you can play at anything, until you make the mistake of believing your own joke.' The thought 'The Backyard Messiah' takes root."
       }
     ]
   },
@@ -1456,11 +1482,19 @@ const CHAPTERS = [
             "label": "[万物皆诗] 随他爬上大臣山俯瞰港口，在防波堤旁见证落水的铁钉",
             "labelEn": "[The Great Poem] Climb Chancellor Hill and watch the nail drop at the wharf",
             "check": {
+              "id": "words_great_poem",
+              "type": "white",
               "v": "imagine",
-              "dc": 7
+              "dc": 7,
+              "modifiers": [
+                { "text": "萨瓦纳草原仰望星轨的触动", "textEn": "Savannah star-gazing epiphany", "val": 2 },
+                { "text": "诗人的学徒同情共鸣", "textEn": "Poet apprentice resonance", "statGte": { "v": "empathy", "val": 3 }, "val": 1 }
+              ]
             },
             "pass": [
               {
+                "thought": "quarter_of_four_cents",
+                "heal": { "amount": 2, "reason": "十四行诗与深邃星空抚平了所有母爱皮鞭的创伤" },
                 "s": "narr",
                 "x": "他做任何事都像参加神圣的教堂仪式。在码头防波堤边，我问：“如果我把这枚钉子扔进水里，能浮起来吗？”他说：“这是个奇妙的世界，扔下去试试看。”钉子沉入大海。我问起他那首举世无双的诗篇。他告诉我，他每个月写一行，已经写了五年，还要写二十二年：“上个月的一行是——‘往昔是幽深的。’二十二年后，它将唱进全人类的心里。”",
                 "en": "He did everything as though it were a sacred ritual in church. On the wharf wall I asked: 'If I drop this nail in the water, it will float?' He smiled: 'It is a strange world. Drop it and see.' The nail sank. I asked about his world masterpiece. He told me he wrote one line a month, five years done, twenty-two more to go: 'The line for last month was—\"The past is deep.\" In twenty-two years, it will sing to all humanity.'"
@@ -1688,9 +1722,10 @@ const CHAPTERS = [
         ]
       },
       {
+        "thought": "paradox_of_tears",
         "s": "narr",
-        "x": "当那只湿漉漉的小狗摇着尾巴凑过去时，比佛竟然瞬间忘了流血的脚。他伸开两只粗壮的胳膊一把将小狗抱进怀里，笑得像个死里逃生的天真孩子。那一刻，我彻底掌握了比佛的全部秘密：他怕黑！他怕小狗！他所有的残暴与威严全是一场虚张声势！从那以后，比佛每次在街上遇见我，眼神里都充满了哀求与恐惧，生怕我把秘密泄露给哈特他们。",
-        "en": "When the wet puppy trotted over, Big Foot instantly forgot his bleeding foot. He wrapped his massive arms around the dog, petting it and laughing with childlike joy. At that instant, I held Big Foot's greatest secret: he was terrified of the dark! Terrified of dogs! His whole menacing dread was a pathetic bluff. From that day on, whenever he saw me, his eyes carried a desperate, pleading look, begging me not to tell Hat."
+        "x": "当那只湿漉漉的小狗摇着尾巴凑过去时，比佛竟然瞬间忘了流血的脚。他伸开两只粗壮的胳膊一把将小狗抱进怀里，笑得像个死里逃生的天真孩子。那一刻，我彻底掌握了比佛的全部秘密：他怕黑！他怕小狗！他所有的残暴与威严全是一场虚张声势！《大脚的眼泪悖论》思潮在你脑海中萌发。",
+        "en": "When the wet puppy trotted over, Big Foot instantly forgot his bleeding foot. He wrapped his massive arms around the dog, petting it and laughing with childlike joy. At that instant, I held Big Foot's greatest secret: he was terrified of the dark! Terrified of dogs! His whole menacing dread was a pathetic bluff. The thought 'The Paradox of Tears' emerges in your mind."
       },
       {
         "g": "day",
@@ -1710,11 +1745,16 @@ const CHAPTERS = [
       {
         "choice": [
           {
-            "label": "[冷面下注] 拿出兜里仅有的六分钱，跟博伊打赌比佛会输",
-            "labelEn": "[Deadpan Bet] Put down your solitary six cents with Boyee, betting Big Foot will lose",
+            "label": "[冷面下注 · 红检定] 拿出兜里仅有的六分钱，跟博伊打赌比佛会输",
+            "labelEn": "[Red Check · Deadpan Bet] Put down your solitary six cents with Boyee, betting Big Foot will lose",
             "check": {
+              "id": "bigfoot_boxing_bet_red",
+              "type": "red",
               "v": "street",
-              "dc": 6
+              "dc": 7,
+              "modifiers": [
+                { "text": "洞悉暴力的脆弱本质", "textEn": "Dissected the brittle myth of violence", "statGte": { "v": "street", "val": 3 }, "val": 2 }
+              ]
             },
             "pass": [
               {
@@ -1731,6 +1771,7 @@ const CHAPTERS = [
             ],
             "fail": [
               {
+                "damage": { "amount": 1, "reason": "全场球迷的哄笑与输光全部零钱的窘迫" },
                 "s": "boyee",
                 "x": "博伊冷笑：“六分钱？你输定了，等着明天乖乖交钱吧！”",
                 "en": "Boyee sneered: 'Six cents? You giving away free money, man!'"
@@ -2451,14 +2492,21 @@ const CHAPTERS = [
             "label": "[街头老练] 分析贫民窟女人的算计，劝埃多斯权衡利弊",
             "labelEn": "[Street Wisdom] Weigh the aristocratic garbage route against an unwanted paternity",
             "check": {
+              "id": "eddoes_aristocracy",
+              "type": "white",
               "v": "street",
-              "dc": 6
+              "dc": 6,
+              "modifiers": [
+                { "text": "圣克莱尔富人区的垃圾油水", "textEn": "Sanitation spoils of St. Clair", "val": 2 }
+              ]
             },
             "pass": [
               {
+                "thought": "garbage_aristocracy",
+                "heal": { "amount": 1, "reason": "埃多斯从垃圾车里搜得的薄荷硬糖" },
                 "s": "hat",
-                "x": "哈特冷笑一声：“俗话说，男人是蜈蚣心肠，女人比蜈蚣心肠还要毒！有些女人专门靠生孩子敲诈男人的血汗钱，自己落得一身轻。但听着，埃多斯，圣克莱尔的肥差绝对不能丢。等孩子满一岁，把她接回米格尔街，咱们自己养！”",
-                "en": "Hat spat: 'A man is a centipede, but a woman is worse than a centipede! Some women live off father-child money without raising a finger. But listen, Eddoes: never surrender St. Clair. When the baby turns one, bring her home—we raise she here!'"
+                "x": "哈特冷笑一声：“俗话说，男人是蜈蚣心肠，女人比蜈蚣心肠还要毒！有些女人专门靠生孩子敲诈男人的血汗钱，自己落得一身轻。但听着，埃多斯，圣克莱尔的肥差绝对不能丢。等孩子满一岁，把她接回米格尔街，咱们自己养！”《垃圾堆里的贵族》思潮在你脑海中萌发。",
+                "en": "Hat spat: 'A man is a centipede, but a woman is worse than a centipede! Some women live off father-child money without raising a finger. But listen, Eddoes: never surrender St. Clair. When the baby turns one, bring her home—we raise she here!' The thought 'The Sanitation Aristocracy' takes root."
               },
               {
                 "v": "street",
@@ -2956,9 +3004,10 @@ const CHAPTERS = [
         "tip": "在《特立尼达卫报》上寻找失踪的足球 / Mark the Missing Ball with red pencil"
       },
       {
+        "thought": "spot_the_ball",
         "s": "narr",
-        "x": "博勒为此着了魔。起初他每周寄一份，哈特打趣他中奖后会搬到圣克莱尔的大洋房，博勒冷冷地说他只想去美国。后来他寄两份、四份、六份，买了整沓坐标纸和圆规卡尺，却连一便士也没中过。他愤怒地摔了尺子：“全是骗局！办报纸的白人早就内定了分赃名单，专骗穷黑人的血汗钱！”",
-        "en": "Bolo became possessed. At first he mailed one entry; Hat teased that he would buy a mansion in St. Clair, but Bolo sneered that he'd go to America. Soon he was sending two, four, six sheets, arming himself with graph paper and calipers, yet never won a penny. He flung the compass down: 'A giant racket! The white editors fixed the winners from day one just to rob poor black men!'"
+        "x": "博勒为此着了魔。起初他每周寄一份，哈特打趣他中奖后会搬到圣克莱尔的大洋房，博勒冷冷地说他只想去美国。后来他寄两份、四份、六份，买了整沓坐标纸和圆规卡尺，却连一便士也没中过。他愤怒地摔了尺子：“全是骗局！办报纸的白人早就内定了分赃名单，专骗穷黑人的血汗钱！”《失踪的球与暴富梦》思潮在你脑海中萌发。",
+        "en": "Bolo became possessed. At first he mailed one entry; Hat teased that he would buy a mansion in St. Clair, but Bolo sneered that he'd go to America. Soon he was sending two, four, six sheets, arming himself with graph paper and calipers, yet never won a penny. He flung the compass down: 'A giant racket! The white editors fixed the winners from day one just to rob poor black men!' The thought 'The Spot-the-Ball Mania' takes root."
       },
       {
         "choice": [
@@ -2966,8 +3015,13 @@ const CHAPTERS = [
             "label": "[租房受骗] 提及一九四三年科布伦茨大道的那桩租房惨案",
             "labelEn": "[Housing Fraud] Mention the 1943 Coblentz Avenue room rent swindle",
             "check": {
+              "id": "bolo_swindle",
+              "type": "white",
               "v": "empathy",
-              "dc": 6
+              "dc": 6,
+              "modifiers": [
+                { "text": "理解底层人的多疑创伤", "textEn": "Understanding scarred cynicism", "statGte": { "v": "empathy", "val": 3 }, "val": 1 }
+              ]
             },
             "pass": [
               {
@@ -3097,14 +3151,20 @@ const CHAPTERS = [
             "label": "[画作审视] 走进爱德华的工作间，打量他那些风格突变的新作",
             "labelEn": "[Artistic Shift] Step into Edward's studio and inspect his Americanized canvases",
             "check": {
+              "id": "edward_spitfire_dreams",
+              "type": "white",
               "v": "imagine",
-              "dc": 6
+              "dc": 6,
+              "modifiers": [
+                { "text": "皇家画院与大洋彼岸的憧憬", "textEn": "Royal Academy & transatlantic longing", "statGte": { "v": "imagine", "val": 3 }, "val": 1 }
+              ]
             },
             "pass": [
               {
+                "thought": "raf_spitfire",
                 "s": "edward",
-                "x": "爱德华倚在美军军械箱上，吐着泡泡糖：“怎么样，小子？这才是现代艺术！白星条旗、展翅雄鹰、还有金发大胸脯的好莱坞宝贝！谁他妈还去画面包和肉铺招牌？美国大兵一张招牌赏我五十美金！”",
-                "en": "Edward lounged on an ammo crate, snapping his gum: 'How's that, kid? That's modern art! Stars and Stripes, bald eagles, and busty Hollywood blondes! Who paints bakeries now? A GI captain gives me fifty bucks for one sign!'"
+                "x": "爱德华倚在美军军械箱上，吐着泡泡糖：“怎么样，小子？这才是现代艺术！白星条旗、展翅雄鹰、还有金发大胸脯的好莱坞宝贝！谁他妈还去画面包和肉铺招牌？但我心底真正想画的，是伦敦上空的喷火战斗机！”思潮《喷火战机与英格兰》在你脑海中萌发。",
+                "en": "Edward lounged on an ammo crate, snapping his gum: 'How's that, kid? That's modern art! Stars and Stripes, bald eagles, and busty Hollywood blondes! But in my soul, what I truly want to paint is British Spitfires dogfighting over London!' The thought 'RAF Spitfire Dreams' takes root."
               },
               {
                 "v": "imagine",
@@ -3409,9 +3469,11 @@ const FINALE = {
           "labelEn": "[The Omen] Squeeze past the doorpost, accidentally kicking the pitcher",
           "then": [
             {
+              "thought": "broom_and_pitcher",
+              "damage": { "amount": 1, "reason": "铜牛奶壶打翻在门槛上，母亲绝望的眼泪" },
               "s": "narr",
-              "x": "门框很宽，我明明贴着门边走，可不知为什么，脚尖还是‘哐当’一声碰翻了铜壶！白花花的鲜牛奶泼洒在灰黑色的地板缝隙里。母亲的脸色瞬间惨白，泪水再次涌出：“这是不祥之兆……我知道，我再也不会在米格尔街上看到你了。”",
-              "en": "The doorway was wide, yet my shoe clipped the brass rim with a sharp clang! White milk surged across the dark floorboards. Mother's face froze in dread, fresh tears spilling: 'An ill omen... I know it now: I will never see you walk down Miguel Street again.'"
+              "x": "门框很宽，我明明贴着门边走，可不知为什么，脚尖还是‘哐当’一声碰翻了铜壶！白花花的鲜牛奶泼洒在灰黑色的地板缝隙里。母亲的脸色瞬间惨白，泪水再次涌出：“这是不祥之兆……我知道，我再也不会在米格尔街上看到你了。”《扫帚与泼翻的牛奶》思潮在你脑海中萌发。",
+              "en": "The doorway was wide, yet my shoe clipped the brass rim with a sharp clang! White milk surged across the dark floorboards. Mother's face froze in dread, fresh tears spilling: 'An ill omen... I know it now: I will never see you walk down Miguel Street again.' The thought 'The Broom and Spilled Milk' takes root."
             },
             {
               "v": "memory",
@@ -3436,6 +3498,7 @@ const FINALE = {
       "en": "Back on Miguel Street, the first soul I saw was Hat, strolling flat-footedly from the corner café with the Guardian under his arm. I leaned out the window, waving frantically. Hat merely remarked with flat indifference: 'I thought you was in the air by this time.'"
     },
     {
+      "damage": { "amount": 1, "reason": "哈特漫不经心的平淡：‘我以为你这时已经在天上了呢’" },
       "v": "street",
       "lvl": 3,
       "x": "一股彻骨的冰凉浇透了我的心。我曾以为我的离去会撕开街区的缺口；可现实是，米格尔街的生活照常运转，阳光依然炙热，男人们依然无所事事。我的离开对这片土地微不足道。",
@@ -3458,9 +3521,37 @@ const FINALE = {
       "tip": "走向跑道中央的客机 / Walk forward onto the tarmac"
     },
     {
-      "s": "narr",
-      "x": "广播里冷漠的女声催促着最后的登机。我转过身，快步穿过皮亚科机场空旷冰冷的柏油停机坪走向飞机。我没有回头，只看着前面自己的影子——一个在加勒比海热带晨曦下跳跃着的小矮人。",
-      "en": "The cool, detached loudspeaker announced the final boarding call. I turned away and walked briskly across the tarmac toward the plane. I did not look back. I looked only at my shadow before me, which was like a dancing dwarf upon the runway."
+      "choice": [
+        {
+          "label": "[终极红检定 · 永恒的观察者] 绝不回头，注视跑道晨曦下拉长的小矮人影子",
+          "labelEn": "[Ultimate Red Check · The Chronicler] Do not look back; look only at your shadow on the runway",
+          "check": {
+            "id": "finale_dwarf_red",
+            "type": "red",
+            "v": "memory",
+            "dc": 7,
+            "modifiers": [
+              { "text": "收集了米格尔街邻居们的全部灵魂碎片", "textEn": "All 16 Miguel Street soul fragments gathered", "statGte": { "v": "memory", "val": 3 }, "val": 2 },
+              { "text": "超然与离别的心灵铠甲", "textEn": "Detached poetic armor", "statGte": { "v": "nerve", "val": 3 }, "val": 1 }
+            ]
+          },
+          "pass": [
+            {
+              "thought": "dancing_dwarf",
+              "s": "narr",
+              "x": "广播里冷漠的女声催促着最后的登机。我转过身，快步穿过皮亚科机场空旷冰冷的柏油停机坪走向飞机。我没有回头，只看着前面自己的影子——一个在加勒比海热带晨曦下跳跃着的小矮人。那一刻，你不再是流落殖民地的受害者，你成为了这条街永恒的记录者与小说家。",
+              "en": "The cool, detached loudspeaker announced the final boarding call. I turned away and walked briskly across the tarmac toward the plane. I did not look back. I looked only at my shadow before me, which was like a dancing dwarf upon the runway. You were no longer a helpless victim; you had become the immortal chronicler."
+            }
+          ],
+          "fail": [
+            {
+              "s": "narr",
+              "x": "广播里冷漠的女声催促着最后的登机。我转过身，快步穿过皮亚科机场空旷冰冷的柏油停机坪走向飞机。我忍不住最后回望了一眼那片在晨光中泛着热浪的特立尼达群山，泪水终于不可遏止地模糊了双眼。",
+              "en": "The cool, detached loudspeaker announced the final boarding call. I turned away and walked across the tarmac toward the plane. I could not resist looking back one final time at the heat shimmering over the northern range, tears finally blinding my vision."
+            }
+          ]
+        }
+      ]
     }
   ]
 };

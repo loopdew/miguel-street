@@ -20,14 +20,42 @@
     stats: { memory: 3, imagine: 5, empathy: 3, street: 1, nerve: 2 }
   };
 
+  const save = () => {
+    try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {}
+  };
+
+  function updateMoraleDom() {
+    const pipsBox = $('#morale-pips');
+    if (!pipsBox) return;
+    const max = state.maxMorale || 3;
+    const cur = state.morale !== undefined ? state.morale : 3;
+    pipsBox.innerHTML = '';
+    for (let i = 1; i <= max; i++) {
+      const span = document.createElement('span');
+      span.className = `pip ${i <= cur ? 'on' : ''}`;
+      pipsBox.appendChild(span);
+    }
+    save();
+  }
+
+  function updateInsightDom() {
+    const el = $('#insight-count');
+    if (el) el.textContent = state.insight !== undefined ? state.insight : 1;
+    if (typeof RPG !== 'undefined') {
+      RPG.updateInsightDisplay();
+      RPG.updateCabinetBadge();
+    }
+    save();
+  }
+
   try {
     const saved = JSON.parse(localStorage.getItem(KEY));
     if (saved) state = { ...state, ...saved };
   } catch (e) {}
 
-  const save = () => {
-    try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {}
-  };
+  if (typeof RPG !== 'undefined') {
+    RPG.init(state, updateMoraleDom, updateInsightDom);
+  }
 
   const isDone = id => state.collected.includes(id);
 
@@ -351,6 +379,8 @@
           toggleSheet();
         } else if (e.code === 'KeyB') {
           toggleBook();
+        } else if (e.code === 'KeyT') {
+          toggleCabinet();
         }
       } else if (runtime.mode === 'dialogue') {
         if (e.code === 'Space' || e.code === 'Enter') {
@@ -358,8 +388,10 @@
           advanceDialogue();
         } else if (e.code === 'Escape') {
           exitDialogue();
+        } else if (e.code === 'KeyT') {
+          toggleCabinet();
         }
-      } else if (runtime.mode === 'sheet' || runtime.mode === 'book') {
+      } else if (runtime.mode === 'sheet' || runtime.mode === 'book' || runtime.mode === 'cabinet') {
         if (e.code === 'Escape') {
           closeModals();
         }
@@ -451,8 +483,10 @@
     const node = SV_NODES[currentNodeIndex];
     if (dir > 0 && node.next !== null) {
       loadNode(node.next);
+      if (typeof RPG !== 'undefined') RPG.advanceThoughtResearch(1);
     } else if (dir < 0 && node.prev !== null) {
       loadNode(node.prev);
+      if (typeof RPG !== 'undefined') RPG.advanceThoughtResearch(1);
     }
   }
 
@@ -831,6 +865,24 @@
         await typeLine({ who: speakerName, role: step.s || 'narr', text });
       }
 
+      // 极乐迪斯科 RPG 机制：思维萌发、士气创伤/恢复、推演步进
+      if (step.thought && typeof RPG !== 'undefined') {
+        RPG.discoverThought(step.thought);
+      }
+      if (step.damage && typeof RPG !== 'undefined') {
+        const isEn = state.lang === 'EN';
+        const reason = isEn ? (step.damage.reasonEn || step.damage.reason) : (step.damage.reason || '心理受挫');
+        RPG.damageMorale(step.damage.amount || 1, reason);
+      }
+      if (step.heal && typeof RPG !== 'undefined') {
+        const isEn = state.lang === 'EN';
+        const reason = isEn ? (step.heal.reasonEn || step.heal.reason) : (step.heal.reason || '心灵抚慰');
+        RPG.healMorale(step.heal.amount || 1, reason);
+      }
+      if (typeof RPG !== 'undefined') {
+        RPG.advanceThoughtResearch(1);
+      }
+
       if (step.choice) {
         const chosen = await presentChoices(step.choice);
         if (chosen.then) {
@@ -940,37 +992,66 @@
         const btn = document.createElement('button');
         let checkTag = '';
         let oddsTag = '';
+        let isLocked = false;
+
         if (opt.check) {
-          const vInfo = VOICES[opt.check.v];
-          const stat = state.stats[opt.check.v] || 0;
-          const diff = opt.check.dc - stat;
-          const odds = isEn ?
-            (diff <= 4 ? 'Very High' : (diff <= 6 ? 'High' : (diff <= 8 ? 'Medium' : 'Challenging'))) :
-            (diff <= 4 ? '极高' : (diff <= 6 ? '较高' : (diff <= 8 ? '中等' : '艰难')));
+          const check = opt.check;
+          const isRed = check.type === 'red';
+          const vInfo = VOICES[check.v];
           const vName = isEn ? vInfo.en : vInfo.name;
-          checkTag = `<span class="ck" style="color:${vInfo.color}">[${vName} ${isEn ? 'CHECK' : '检定'}]</span>`;
-          oddsTag = `<span class="odds">(${odds})</span>`;
+
+          isLocked = typeof RPG !== 'undefined' ? RPG.isCheckLocked(check) : false;
+
+          if (isLocked) {
+            btn.classList.add('locked-check');
+            btn.disabled = true;
+            if (isRed) {
+              checkTag = `<span class="ck" style="color:#d63820;">[${isEn ? 'FAILED RED CHECK · IRREVOCABLE' : '红检定 · 机会已逝'}]</span>`;
+            } else {
+              checkTag = `<span class="ck" style="color:#e0d6c3;">[${isEn ? `LOCKED WHITE CHECK · UPGRADE [${vName}]` : `白检定锁定 · 提升【${vName}】重试`}]</span>`;
+            }
+          } else {
+            const { totalMod } = typeof RPG !== 'undefined' ? RPG.computeModifiers(check) : { totalMod: state.stats[check.v] || 0 };
+            const diff = check.dc - totalMod;
+            const odds = isEn ?
+              (diff <= 3 ? 'Almost Certain' : (diff <= 5 ? 'High' : (diff <= 7 ? 'Medium' : (diff <= 9 ? 'Challenging' : 'Very Low')))) :
+              (diff <= 3 ? '几乎笃定' : (diff <= 5 ? '较高' : (diff <= 7 ? '中等' : (diff <= 9 ? '艰难' : '渺茫'))));
+
+            if (isRed) {
+              btn.classList.add('red-check');
+              checkTag = `<span class="ck" style="color:#ff5240;">[${isEn ? 'RED CHECK · ONE CHANCE' : '红检定 · 仅此一次'}] [${vName}]</span>`;
+            } else {
+              btn.classList.add('white-check');
+              checkTag = `<span class="ck" style="color:${vInfo.color}">[${isEn ? 'WHITE CHECK' : '白检定'}] [${vName}]</span>`;
+            }
+            oddsTag = `<span class="odds">(${odds})</span>`;
+          }
         }
+
         const rawText = isEn ? (opt.labelEn || opt.label) : opt.label;
         const text = opt.check ? rawText.replace(/^\[[^\]]+\]\s*/, '') : rawText;
         btn.innerHTML = `<span class="num">${idx + 1}.</span>${checkTag}${text} ${oddsTag}`;
 
-        btn.onclick = async () => {
-          optBox.innerHTML = '';
-          const chosenP = document.createElement('p');
-          chosenP.className = 'ln picked';
-          chosenP.textContent = text;
-          $('#log').appendChild(chosenP);
+        if (!isLocked) {
+          btn.onclick = async () => {
+            optBox.innerHTML = '';
+            const chosenP = document.createElement('p');
+            chosenP.className = 'ln picked';
+            chosenP.textContent = text;
+            $('#log').appendChild(chosenP);
 
-          if (opt.check) {
-            const pass = await performDiceRoll(opt.check);
-            const branch = pass ? opt.pass : opt.fail;
-            if (branch) {
-              await runStepSequence(branch, runtime.activeChapter);
+            if (opt.check) {
+              const pass = await performDiceRoll(opt.check);
+              const branch = pass ? opt.pass : opt.fail;
+              if (branch) {
+                await runStepSequence(branch, runtime.activeChapter);
+              }
+            } else if (opt.then) {
+              await runStepSequence(opt.then, runtime.activeChapter);
             }
-          }
-          resolve(opt);
-        };
+            resolve(opt);
+          };
+        }
         optBox.appendChild(btn);
       });
     });
@@ -981,14 +1062,38 @@
     const dBox = $('#dice');
     dBox.classList.remove('hidden');
     const isEn = state.lang === 'EN';
+    const isRed = check.type === 'red';
     const vInfo = VOICES[check.v];
-    const skillLvl = state.stats[check.v] || 0;
+    const vName = isEn ? vInfo.en : vInfo.name;
+
+    const { ledger, totalMod } = typeof RPG !== 'undefined' ?
+      RPG.computeModifiers(check) :
+      { ledger: [{ name: isEn ? 'Base' : '基础', val: state.stats[check.v] || 0 }], totalMod: state.stats[check.v] || 0 };
 
     $('#dice-skill').innerHTML = `
-      <span style="color:${vInfo.color}">[${isEn ? vInfo.en : vInfo.name}]</span>
-      DC: ${check.dc} (LEVEL: ${skillLvl})
+      <span style="color:${isRed ? '#ff5240' : vInfo.color}">[${isRed ? (isEn ? 'RED CHECK' : '红检定 · 机会仅此一次') : (isEn ? 'WHITE CHECK' : '白检定')}]</span>
+      ${vName} · ${isEn ? 'DC' : '难度'} ${check.dc}
     `;
-    $('#dice-sum').textContent = isEn ? 'Rolling 2d6...' : '掷出双骰...';
+
+    const ledgerBox = $('#dice-ledger');
+    if (ledgerBox) {
+      ledgerBox.className = 'dice-modifiers-box';
+      ledgerBox.innerHTML = `
+        <div class="dice-modifiers-title">${isEn ? 'MODIFIERS LEDGER' : '情境修正值清单'}</div>
+        ${ledger.map(item => `
+          <div class="dice-mod-item ${item.val >= 0 ? 'bonus' : 'malus'}">
+            <span>${item.name}</span>
+            <span>${item.val >= 0 ? '+' : ''}${item.val}</span>
+          </div>
+        `).join('')}
+        <div class="dice-mod-item" style="border-top:1px dashed rgba(217,164,65,0.4); margin-top:5px; padding-top:4px; font-weight:700;">
+          <span>${isEn ? 'Total Modifier' : '总计修正加成'}</span>
+          <span style="color:var(--ochre);">${totalMod >= 0 ? '+' : ''}${totalMod}</span>
+        </div>
+      `;
+    }
+
+    $('#dice-sum').textContent = isEn ? `Total Modifier: ${totalMod >= 0 ? '+' : ''}${totalMod}` : `总计修正值: ${totalMod >= 0 ? '+' : ''}${totalMod}`;
     $('#dice-result').textContent = '';
 
     SoundScape.sfx('dice');
@@ -1005,15 +1110,34 @@
     $('#die1').textContent = die1;
     $('#die2').textContent = die2;
 
-    const total = die1 + die2 + skillLvl;
-    const pass = total >= check.dc;
+    const isCritSuccess = (die1 === 6 && die2 === 6);
+    const isCritFailure = (die1 === 1 && die2 === 1);
+    const total = die1 + die2 + totalMod;
+    const pass = isCritSuccess || (total >= check.dc && !isCritFailure);
 
-    $('#dice-sum').textContent = `${die1} + ${die2} + ${skillLvl} = ${total}`;
-    $('#dice-result').innerHTML = pass ?
-      `<b style="color:#8cd4a8;">${isEn ? 'SUCCESS' : '检定通过'}</b>` :
-      `<b style="color:var(--rust);">${isEn ? 'FAILURE' : '检定未通过'}</b>`;
+    $('#dice-sum').textContent = `${die1} + ${die2} + ${isEn ? 'Mod' : '修正'}(${totalMod >= 0 ? '+' : ''}${totalMod}) = ${total} (${isEn ? 'DC' : '难度'}: ${check.dc})`;
 
-    await new Promise(r => setTimeout(r, 1200));
+    if (isCritSuccess) {
+      $('#dice-result').innerHTML = `<b style="color:#8cd4a8;">${isEn ? 'CRITICAL SUCCESS!' : 'CRITICAL SUCCESS / 绝妙大成功!'}</b>`;
+      SoundScape.sfx('collect');
+    } else if (isCritFailure) {
+      $('#dice-result').innerHTML = `<b style="color:var(--rust-hi);">${isEn ? 'CRITICAL FAILURE!' : 'CRITICAL FAILURE / 双一惨败!'}</b>`;
+      SoundScape.sfx('fizz');
+    } else if (pass) {
+      $('#dice-result').innerHTML = `<b style="color:#8cd4a8;">${isEn ? 'CHECK SUCCESS' : '检定通过'}</b>`;
+      SoundScape.sfx('collect');
+    } else {
+      $('#dice-result').innerHTML = `<b style="color:var(--rust);">${isEn ? 'CHECK FAILURE' : '检定未通过'}</b>`;
+      SoundScape.sfx('fizz');
+    }
+
+    // 记录检定结果（白检定锁定/红检定惩罚/顿悟奖励）
+    if (typeof RPG !== 'undefined') {
+      RPG.recordCheckResult(check, pass);
+      RPG.advanceThoughtResearch(2);
+    }
+
+    await new Promise(r => setTimeout(r, 1600));
     dBox.classList.add('hidden');
     return pass;
   }
@@ -1040,24 +1164,47 @@
     }
   }
 
+  function toggleCabinet() {
+    const c = $('#cabinet');
+    if (!c) return;
+    if (c.classList.contains('hidden')) {
+      closeModals();
+      if (typeof RPG !== 'undefined') RPG.openCabinetModal();
+      runtime.mode = 'cabinet';
+    } else {
+      closeModals();
+    }
+  }
+
   function closeModals() {
     $('#sheet').classList.add('hidden');
     $('#book').classList.add('hidden');
+    if (typeof RPG !== 'undefined') RPG.closeCabinetModal();
     runtime.mode = 'street';
   }
 
   $$('.sheet-close').forEach(btn => btn.addEventListener('click', closeModals));
   $('#btn-sheet').addEventListener('click', toggleSheet);
   $('#btn-book').addEventListener('click', toggleBook);
+  $('#btn-cabinet').addEventListener('click', toggleCabinet);
+
+  const cabClose = $('#cabinet-close');
+  if (cabClose) cabClose.addEventListener('click', () => { if (typeof RPG !== 'undefined') RPG.closeCabinetModal(); });
+  const cabUnlock = $('#btn-unlock-slot');
+  if (cabUnlock) cabUnlock.addEventListener('click', () => { if (typeof RPG !== 'undefined') RPG.unlockThoughtSlot(); });
 
   function renderSheet() {
     const list = $('#sheet-list');
     const isEn = state.lang === 'EN';
     list.innerHTML = Object.entries(VOICES).map(([k, v]) => {
       const val = state.stats[k] || 0;
+      const canUp = (state.insight || 0) > 0 && val < 6;
       return `
         <div class="skill" style="color:${v.color}">
-          <div class="nm">${isEn ? v.en : v.name}<small>${isEn ? v.name : v.en}</small></div>
+          <div class="nm">
+            ${isEn ? v.en : v.name}<small>${isEn ? v.name : v.en}</small>
+            ${canUp ? `<button class="btn-voice-up" data-voice="${k}">+ ${isEn ? 'Level Up' : '升级'}</button>` : ''}
+          </div>
           <div>
             <div class="pips">${[1, 2, 3, 4, 5, 6].map(i => `<i class="${i <= val ? 'on' : ''}"></i>`).join('')}</div>
             <div class="ds">${v.desc}</div>
@@ -1065,6 +1212,17 @@
         </div>
       `;
     }).join('');
+
+    list.querySelectorAll('.btn-voice-up').forEach(btn => {
+      btn.addEventListener('click', e => {
+        e.stopPropagation();
+        const vKey = btn.getAttribute('data-voice');
+        if (typeof RPG !== 'undefined') {
+          RPG.levelUpVoice(vKey);
+          renderSheet();
+        }
+      });
+    });
   }
 
   function renderBook() {
@@ -1118,6 +1276,18 @@
     $('#lang-val').textContent = isEn ? 'EN' : '中文';
     const node = SV_NODES[currentNodeIndex];
     if ($('#sv-node-title')) $('#sv-node-title').textContent = isEn ? node.nameEn : node.name;
+
+    const cabBadge = state.cabinet ? `${state.cabinet.internalized.length + (state.cabinet.researching ? 1 : 0)}/${state.cabinet.maxSlots}` : '0/3';
+    $('#btn-cabinet').innerHTML = `🧠 ${isEn ? 'Cabinet' : '思维阁'} <b id="cabinet-badge">${cabBadge}</b> <kbd>T</kbd>`;
+
+    const mLabel = $('#hud-morale .vital-label');
+    if (mLabel) mLabel.textContent = isEn ? 'MORALE' : '士气';
+    const iLabel = $('#hud-insight .vital-label');
+    if (iLabel) iLabel.textContent = isEn ? 'INSIGHT' : '顿悟';
+
+    updateMoraleDom();
+    updateInsightDom();
+
     const isTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
     const hintEl = $('#sv-hint-bar');
     if (hintEl) {
